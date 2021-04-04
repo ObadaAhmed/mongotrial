@@ -54,6 +54,12 @@ function insertRecord(req, res) {
 }
 
 function updateRecord(req, res) {
+    let { role , _id }  =  req.body;
+    console.log(role);
+    roleSc.findOneAndUpdate({empId : _id} , {roleName : role } , (err , role)=> {
+                if (!err) console.log('new role saved' , role);
+    });
+     
     Employee.findOneAndUpdate({ _id: req.body._id }, req.body, { new: true }, (err, doc) => {
         if (!err) { res.redirect('employee/list'); }
         else {
@@ -80,6 +86,7 @@ router.get('/list', async (req, res) => {
     for (let index2 = 0; index2 < roles.length; index2++) {
          if (emps[index]._id == roles[index2].empId){
              empWithRoles.push({
+                 _id : emps[index]._id,
                  fullName : emps[index].fullName,
                  email : emps[index].email,
                  mobile : emps[index].mobile,
@@ -90,11 +97,8 @@ router.get('/list', async (req, res) => {
     }
      
  }
-
-
-                console.log('made i');
-            res.render("employee/list", {
-                
+                console.log('made it');
+            res.render("employee/list", {              
                 list : empWithRoles
             })
 });
@@ -115,12 +119,21 @@ function handleValidationError(err, body) {
     }
 }
 
-router.get('/:id', (req, res) => {
-    Employee.findById(req.params.id, (err, doc) => {
+router.get('/:id',  (req, res) => {
+    Employee.findById(req.params.id, async (err, doc) => {
+      let roleName = await roleSc.findOne({empId : req.params.id})
+        let empWithRole = {
+            _id : doc._id,
+            fullName : doc.fullName,
+            email : doc.email,
+            mobile : doc.mobile,
+            city : doc.city,
+            role : roleName.roleName
+        }
         if (!err) {
             res.render("employee/addOrEdit", {
                 viewTitle: "Update Employee",
-                employee: doc
+                employee: empWithRole
             });
         }
     });
